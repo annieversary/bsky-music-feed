@@ -1,0 +1,16 @@
+[package]
+name = "bsky-music-feed"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.80"
+atrium-api = { version = "0.24.7" }
+chrono = "0.4.34"
+futures = "0.3.30"
+ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
+rs-car = "0.4.1"
+serde_ipld_dagcbor = { version = "0.6.1", default-features = false, features = ["std"] }
+tokio = { version = "1.36.0", features = ["full"] }
+tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
+trait-variant = "0.1.1"
