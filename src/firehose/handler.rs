@@ -7,7 +7,7 @@ use atrium_api::{
         Post as AtriumPost,
     },
     com::atproto::sync::subscribe_repos::Commit,
-    types::{Collection, Object},
+    types::{CidLink, Collection, Object},
 };
 
 use super::subscription::CommitHandler;
@@ -24,6 +24,8 @@ pub struct OnPostCreateParams<'a> {
     pub post_id: &'a str,
     /// The author's repo, as a string. Eg: `did:plc:asdfghjkl`
     pub author: &'a str,
+    /// The new record CID
+    pub cid: &'a CidLink,
 }
 
 #[allow(dead_code)]
@@ -71,6 +73,11 @@ impl<DATA: Send + Sync> CommitHandler for Handler<DATA> {
 
             // skip things that aren't creates
             if op.action == "create" {
+                // cid exists on create and update, but not on delete
+                let Some(cid) = &op.cid else {
+                    continue;
+                };
+
                 let uri = format!("at://{}/{}", commit.repo.as_str(), &op.path);
 
                 let (items, _header) =
@@ -98,6 +105,7 @@ impl<DATA: Send + Sync> CommitHandler for Handler<DATA> {
                     commit,
                     uri,
                     post_id,
+                    cid,
                     author: commit.repo.as_str(),
                 };
 

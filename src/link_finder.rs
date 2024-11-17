@@ -5,14 +5,16 @@ pub struct Link<'a> {
     pub site: Site,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, sqlx::Type)]
+#[sqlx(rename_all = "lowercase")]
 pub enum Kind {
     Track,
     Playlist,
     Album,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, sqlx::Type)]
+#[sqlx(rename_all = "lowercase")]
 #[allow(dead_code)]
 pub enum Site {
     Spotify,
