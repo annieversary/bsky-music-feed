@@ -2,5 +2,6 @@ CREATE TABLE links (
   url TEXT PRIMARY KEY,
   kind TEXT NOT NULL,
   site TEXT NOT NULL,
-  created_at DATETIME NOT NULL
+  created_at DATETIME NOT NULL,
+  count INT NOT NULL DEFAULT 1
 );

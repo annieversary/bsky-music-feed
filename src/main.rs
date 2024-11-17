@@ -60,7 +60,7 @@ async fn on_post_create(params: OnPostCreateParams<'_>, data: Arc<AppData>) {
         // store links in links table
         for link in &links {
             let _ = sqlx::query!(
-                "insert into links (url, kind, site, created_at) values (?, ?, ?, ?)",
+                "insert into links (url, kind, site, created_at) values (?, ?, ?, ?) on conflict(url) do update set count = count + 1",
                 link.url,
                 link.kind,
                 link.site,
