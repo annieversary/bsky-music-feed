@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use chrono::Utc;
 use firehose::Handler;
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
 
@@ -9,6 +8,7 @@ use crate::firehose::{OnPostCreateParams, OnPostDeleteParams};
 
 mod firehose;
 mod link_finder;
+mod models;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -46,35 +46,23 @@ async fn on_post_create(params: OnPostCreateParams<'_>, data: Arc<AppData>) {
 
     if !links.is_empty() {
         // store post in posts table
-        let now = Utc::now();
         let cid = params.cid.0.to_string();
-        let _ = sqlx::query!(
-            "insert into posts (uri, cid, indexed_at) values (?, ?, ?) on conflict(uri) do nothing",
-            params.uri,
-            cid,
-            now,
-        )
-        .execute(&data.pool)
-        .await;
+        if let Err(err) = models::posts::Post::create(&data.pool, &params.uri, cid).await {
+            println!("{err}");
+        }
 
         // store links in links table
         for link in &links {
-            let _ = sqlx::query!(
-                "insert into links (url, kind, site, created_at) values (?, ?, ?, ?) on conflict(url) do update set count = count + 1",
-                link.url,
-                link.kind,
-                link.site,
-                now,
-            )
-            .execute(&data.pool)
-            .await;
+            if let Err(err) = models::links::Link::create(&data.pool, link).await {
+                println!("{err}");
+            }
         }
     }
 }
 
 async fn on_post_delete(params: OnPostDeleteParams<'_>, data: Arc<AppData>) {
     // delete post by uri from the db
-    let _ = sqlx::query!("delete from posts where uri = ?", params.uri)
-        .execute(&data.pool)
-        .await;
+    if let Err(err) = models::posts::Post::delete(&data.pool, &params.uri).await {
+        println!("{err}");
+    }
 }
