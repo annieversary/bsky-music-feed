@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "insert into links (url, kind, site, created_at) values (?, ?, ?, ?) on conflict(url) do update set count = count + 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "fb8f30da2023db7c4659b59f29a3956c903a763b89a1490750312a7e897b4549"
+}

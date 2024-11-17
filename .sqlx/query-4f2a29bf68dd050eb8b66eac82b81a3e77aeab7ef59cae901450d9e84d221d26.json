@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "insert into posts (uri, cid, indexed_at) values (?, ?, ?) on conflict(uri) do nothing",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "4f2a29bf68dd050eb8b66eac82b81a3e77aeab7ef59cae901450d9e84d221d26"
+}

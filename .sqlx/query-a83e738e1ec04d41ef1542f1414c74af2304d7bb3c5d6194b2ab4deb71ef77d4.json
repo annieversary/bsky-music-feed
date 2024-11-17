@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "select * from posts order by indexed_at desc, cid desc limit ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "uri",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "cid",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "indexed_at",
+        "ordinal": 2,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "a83e738e1ec04d41ef1542f1414c74af2304d7bb3c5d6194b2ab4deb71ef77d4"
+}
