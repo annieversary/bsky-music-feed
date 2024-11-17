@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{net::Ipv4Addr, sync::Arc};
 
 use atrium_api::app::bsky::feed::get_feed_skeleton::{OutputData, ParametersData};
 use axum::{
@@ -18,7 +18,7 @@ pub struct Config {
     pub hostname: String,
 }
 
-pub async fn start_server(app_state: AppState) {
+pub async fn start_server(app_state: AppState, port: u16) {
     let app = Router::new()
         .route("/.well-known/did.json", get(well_known))
         .route(
@@ -31,7 +31,11 @@ pub async fn start_server(app_state: AppState) {
         )
         .with_state(Arc::new(app_state));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    #[cfg(debug_assertions)]
+    println!("listening on http://localhost:{port}");
+
+    let addr: (Ipv4Addr, u16) = ([0, 0, 0, 0].into(), port);
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -64,11 +68,8 @@ async fn describe_feed_generator(State(state): State<Arc<AppState>>) -> impl Int
         .collect::<Vec<_>>();
 
     Json(json!({
-        "encoding": "application/json",
-        "body": {
-            "did": state.config.service_did,
-            "feeds": feeds,
-        }
+        "did": state.config.service_did,
+        "feeds": feeds,
     }))
 }
 

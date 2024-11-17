@@ -50,7 +50,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app_state = AppState { config, pool };
 
-    start_server(app_state).await;
+    let port: u16 = std::env::var("PORT")
+        .ok()
+        .and_then(|a| a.parse().ok())
+        .unwrap_or(3000);
+
+    start_server(app_state, port).await;
 
     Ok(())
 }

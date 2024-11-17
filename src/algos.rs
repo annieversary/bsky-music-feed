@@ -12,7 +12,7 @@ use chrono::DateTime;
 use crate::{models::posts::Post, AppState};
 
 pub fn list() -> &'static [&'static str] {
-    &["music", "spotify"]
+    &["music"]
 }
 
 pub async fn feed(
