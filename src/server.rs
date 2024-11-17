@@ -1,8 +1,16 @@
 use std::sync::Arc;
 
-use axum::{extract::State, response::IntoResponse, routing::get, Json, Router};
+use atrium_api::app::bsky::feed::get_feed_skeleton::{OutputData, ParametersData};
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::get,
+    Json, Router,
+};
 use serde_json::json;
-use sqlx::{Pool, Sqlite};
+
+use crate::{algos::feed, atproto::AtUri, AppState};
 
 pub struct Config {
     pub service_did: String,
@@ -10,12 +18,7 @@ pub struct Config {
     pub hostname: String,
 }
 
-struct AppState {
-    config: Config,
-    pool: Pool<Sqlite>,
-}
-
-pub async fn start_server(config: Config, pool: Pool<Sqlite>) {
+pub async fn start_server(app_state: AppState) {
     let app = Router::new()
         .route("/.well-known/did.json", get(well_known))
         .route(
@@ -26,7 +29,7 @@ pub async fn start_server(config: Config, pool: Pool<Sqlite>) {
             "/xrpc/app.bsky.feed.getFeedSkeleton",
             get(get_feed_skeleton),
         )
-        .with_state(Arc::new(AppState { config, pool }));
+        .with_state(Arc::new(app_state));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -49,12 +52,13 @@ async fn well_known(State(state): State<Arc<AppState>>) -> impl IntoResponse {
 async fn describe_feed_generator(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let feeds = crate::algos::list()
         .iter()
-        .map(|shortname| {
+        .map(|rkey| {
             json!({
-                "uri": format!(
-                    "at://{}/app.bsky.feed.generator/{}",
-                    state.config.publisher_did, shortname
-                )
+                "uri": AtUri {
+                    did: &state.config.publisher_did,
+                    collection: "app.bsky.feed.generator",
+                    rkey
+                }.to_string()
             })
         })
         .collect::<Vec<_>>();
@@ -68,6 +72,19 @@ async fn describe_feed_generator(State(state): State<Arc<AppState>>) -> impl Int
     }))
 }
 
-async fn get_feed_skeleton(State(state): State<Arc<AppState>>) {
-    //
+async fn get_feed_skeleton(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<ParametersData>,
+) -> Result<Json<OutputData>, (StatusCode, &'static str)> {
+    let Ok(uri) = AtUri::from_str(&params.feed) else {
+        return Err((StatusCode::BAD_REQUEST, "Could not parse feed"));
+    };
+
+    if uri.did != state.config.publisher_did || uri.collection != "app.bsky.feed.generator" {
+        return Err((StatusCode::BAD_REQUEST, "Usupported algorithm"));
+    }
+
+    let output = feed(uri.rkey, &state, &params).await?;
+
+    Ok(Json(output))
 }
