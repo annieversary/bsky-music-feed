@@ -1,28 +1,28 @@
+use firehose::{OnPostCreateParams, OnPostDeleteParams};
+
 mod firehose;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    firehose::listen(|post, commit| {
-        let links = link_finder::get_music_links(&post.text);
-
-        if links.is_empty() {
-            println!("no music");
-        } else {
-            println!("yayyy music:");
-            for link in &links {
-                println!("    {}", link.link);
-            }
-        }
-
-        // println!(
-        //     "{} - {}",
-        //     post.created_at.as_ref().with_timezone(&chrono::Local),
-        //     commit.repo.as_str()
-        // );
-    })
-    .await?;
+    firehose::listen(on_post_create, on_post_delete).await?;
 
     Ok(())
+}
+
+fn on_post_create(params: OnPostCreateParams<'_>) {
+    let links = link_finder::get_music_links(&params.post.text);
+
+    if !links.is_empty() {
+        // TODO store post in posts table
+        // sqlx::query!("insert into posts (uri) values (?)", params.uri);
+
+        // TODO store link in links table
+    }
+}
+
+fn on_post_delete(params: OnPostDeleteParams<'_>) {
+    // TODO delete post by uri from the db
+    // sqlx::query!("delete from posts where uri = ?", params.uri);
 }
 
 mod link_finder {
