@@ -26,16 +26,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .context("failed to run migrations")?;
 
-    tokio::spawn(async move {
-        start_ingest(pool.clone()).await.unwrap();
+    tokio::spawn({
+        let pool = pool.clone();
+        async move {
+            start_ingest(pool).await.unwrap();
+        }
     });
 
     let server_config = server::Config {
-        service_did: "test".to_string(),
-        hostname: "test".to_string(),
+        service_did: std::env::var("FEEDGEN_SERVICE_DID")
+            .context("failed to get FEEDGEN_SERVICE_DID")?,
+        publisher_did: std::env::var("FEEDGEN_PUBLISHER_DID")
+            .context("failed to get FEEDGEN_PUBLISHER_DID")?,
+        hostname: std::env::var("FEEDGEN_HOSTNAME").context("failed to get FEEDGEN_HOSTNAME")?,
     };
 
-    start_server(server_config).await;
+    start_server(server_config, pool).await;
 
     Ok(())
+}
+
+mod algos {
+    pub fn list() -> &'static [&'static str] {
+        &["music", "spotify"]
+    }
 }
