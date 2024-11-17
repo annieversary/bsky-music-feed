@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Link<'a> {
+pub struct FoundLink<'a> {
     pub url: &'a str,
     pub kind: Kind,
     pub site: Site,
@@ -26,20 +26,20 @@ mod spotify {
     use regex::Regex;
     use std::sync::LazyLock;
 
-    use super::{Kind, Link};
+    use super::{FoundLink, Kind};
 
     static SPOTIFY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"https?:\/\/open\.spotify\.com\/(album|playlist|track)\/([a-zA-Z0-9]+)")
             .unwrap()
     });
 
-    pub fn get_links(text: &str) -> Vec<Link<'_>> {
+    pub fn get_links(text: &str) -> Vec<FoundLink<'_>> {
         SPOTIFY_REGEX
             .captures_iter(text)
             .map(|capture| {
                 // We ignore the id for now
                 let (full, [kind, _id]) = capture.extract();
-                Link {
+                FoundLink {
                     url: full,
                     kind: match kind {
                         "album" => Kind::Album,
@@ -57,7 +57,7 @@ mod spotify {
     mod tests {
         use super::*;
 
-        fn matches(result: &Link<'_>, link: &str, kind: Kind) -> bool {
+        fn matches(result: &FoundLink<'_>, link: &str, kind: Kind) -> bool {
             result.url == link && result.kind == kind && result.site == super::super::Site::Spotify
         }
 
@@ -98,7 +98,7 @@ mod spotify {
     }
 }
 
-pub fn get_music_links(text: &str) -> Vec<Link<'_>> {
+pub fn get_music_links(text: &str) -> Vec<FoundLink<'_>> {
     let spotify = spotify::get_links(text);
 
     spotify
