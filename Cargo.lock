@@ -155,6 +155,7 @@ dependencies = [
  "chrono",
  "futures",
  "ipld-core",
+ "regex",
  "rs-car",
  "serde_ipld_dagcbor",
  "tokio",

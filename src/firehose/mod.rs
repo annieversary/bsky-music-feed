@@ -1,10 +1,12 @@
 use anyhow::{anyhow, Result};
 use atrium_api::{
-    app::bsky::feed::{post::Record, Post},
+    app::bsky::feed::{
+        post::{Record, RecordData as PostRecordData},
+        Post,
+    },
     com::atproto::sync::subscribe_repos::{Commit, NSID},
-    types::Collection,
+    types::{Collection, Object},
 };
-use chrono::Local;
 use futures::StreamExt;
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
@@ -50,7 +52,9 @@ impl Subscription for RepoSubscription {
     }
 }
 
-struct Firehose;
+struct Firehose {
+    on_post: Box<dyn Fn(&Object<PostRecordData>, &Commit)>,
+}
 
 impl CommitHandler for Firehose {
     async fn handle_commit(&self, commit: &Commit) -> Result<()> {
@@ -86,23 +90,19 @@ impl CommitHandler for Firehose {
 
             let record = serde_ipld_dagcbor::from_reader::<Record, _>(&mut item.as_slice())?;
 
-            println!(
-                "{} - {}",
-                record.created_at.as_ref().with_timezone(&Local),
-                commit.repo.as_str()
-            );
-
-            for line in record.text.split('\n') {
-                println!("  {line}");
-            }
+            (self.on_post)(&record, commit);
         }
         Ok(())
     }
 }
 
-pub async fn listen() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn listen(
+    on_post: impl Fn(&Object<PostRecordData>, &Commit) + 'static,
+) -> Result<(), Box<dyn std::error::Error>> {
     RepoSubscription::new("bsky.network")
         .await?
-        .run(Firehose)
+        .run(Firehose {
+            on_post: Box::new(on_post),
+        })
         .await
 }

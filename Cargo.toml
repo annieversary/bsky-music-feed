@@ -9,6 +9,7 @@ atrium-api = { version = "0.24.7" }
 chrono = "0.4.34"
 futures = "0.3.30"
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
+regex = "1.11.1"
 rs-car = "0.4.1"
 serde_ipld_dagcbor = { version = "0.6.1", default-features = false, features = ["std"] }
 tokio = { version = "1.36.0", features = ["full"] }
