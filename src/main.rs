@@ -1,4 +1,5 @@
-use firehose::{OnPostCreateParams, OnPostDeleteParams};
+use crate::firehose::{OnPostCreateParams, OnPostDeleteParams};
+
 mod firehose;
 mod link_finder;
 
@@ -16,7 +17,10 @@ fn on_post_create(params: OnPostCreateParams<'_>) {
         // TODO store post in posts table
         // sqlx::query!("insert into posts (uri) values (?)", params.uri);
 
-        // TODO store link in links table
+        // TODO store links in links table
+        for link in &links {
+            // sqlx::query!("insert into links (url, kind, site) values (?, ?, ?)", link.url, link.kind, link.site);
+        }
     }
 }
 

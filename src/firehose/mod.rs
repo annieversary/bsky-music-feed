@@ -53,20 +53,30 @@ impl Subscription for RepoSubscription {
 }
 
 pub type Post = Object<PostRecordData>;
-type OnPostCreate = Box<dyn Fn(OnPostCreate<'_>)>;
+type OnPostCreate = Box<dyn Fn(OnPostCreateParams<'_>)>;
 type OnPostDelete = Box<dyn Fn(OnPostDeleteParams<'_>)>;
 
+#[allow(dead_code)]
 pub struct OnPostCreateParams<'a> {
     pub post: &'a Post,
     pub commit: &'a Commit,
+    /// The full uri. Eg: `at://did:plc:asdfghjkl/app.bsky.feed.post/qwertyuiop`
     pub uri: String,
+    /// The post id. Eg: `qwertyuiop`
     pub post_id: &'a str,
+    /// The author's repo, as a string. Eg: `did:plc:asdfghjkl`
+    pub author: &'a str,
 }
 
+#[allow(dead_code)]
 pub struct OnPostDeleteParams<'a> {
     pub commit: &'a Commit,
+    /// The full uri. Eg: `at://did:plc:asdfghjkl/app.bsky.feed.post/qwertyuiop`
     pub uri: String,
+    /// The post id. Eg: `qwertyuiop`
     pub post_id: &'a str,
+    /// The author's repo, as a string. Eg: `did:plc:asdfghjkl`
+    pub author: &'a str,
 }
 
 struct Firehose {
@@ -76,7 +86,6 @@ struct Firehose {
 
 impl CommitHandler for Firehose {
     async fn handle_commit(&self, commit: &Commit) -> Result<()> {
-        dbg!(&commit.repo);
         for op in &commit.ops {
             // path is something like `app.bsky.feed.post/3lb3tt5kwha2w`
             // we only care about posts where the path starts with `app.bsky.feed.post`
@@ -84,10 +93,10 @@ impl CommitHandler for Firehose {
                 continue;
             };
 
-            let uri = format!("at://{}/{}", commit.repo.as_str(), &op.path);
-
             // skip things that aren't creates
             if op.action == "create" {
+                let uri = format!("at://{}/{}", commit.repo.as_str(), &op.path);
+
                 let (items, _header) =
                     rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
 
@@ -113,14 +122,18 @@ impl CommitHandler for Firehose {
                     commit,
                     uri,
                     post_id,
+                    author: commit.repo.as_str(),
                 };
 
                 (self.on_post_create)(params);
             } else if op.action == "delete" {
+                let uri = format!("at://{}/{}", commit.repo.as_str(), &op.path);
+
                 let params = OnPostDeleteParams {
                     commit,
                     uri,
                     post_id,
+                    author: commit.repo.as_str(),
                 };
 
                 (self.on_post_delete)(params);

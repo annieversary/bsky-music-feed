@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Link<'a> {
-    pub link: &'a str,
+    pub url: &'a str,
     pub kind: Kind,
     pub site: Site,
 }
@@ -38,7 +38,7 @@ mod spotify {
                 // We ignore the id for now
                 let (full, [kind, _id]) = capture.extract();
                 Link {
-                    link: full,
+                    url: full,
                     kind: match kind {
                         "album" => Kind::Album,
                         "playlist" => Kind::Playlist,
@@ -56,9 +56,7 @@ mod spotify {
         use super::*;
 
         fn matches(result: &Link<'_>, link: &str, kind: Kind) -> bool {
-            result.link == link
-                && result.kind == kind
-                && result.site == super::super::Site::Spotify
+            result.url == link && result.kind == kind && result.site == super::super::Site::Spotify
         }
 
         #[test]
