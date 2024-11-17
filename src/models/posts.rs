@@ -1,15 +1,15 @@
 use anyhow::{Context, Result};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use sqlx::{Executor, Sqlite};
 
 #[allow(dead_code)]
 pub struct Post {
     /// The full uri. Eg: `at://did:plc:asdfghjkl/app.bsky.feed.post/qwertyuiop`
-    uri: String,
+    pub uri: String,
     /// The record CID
-    cid: String,
+    pub cid: String,
     /// The time this post was indexed at
-    indexed_at: Utc,
+    pub indexed_at: DateTime<Utc>,
 }
 
 impl Post {
@@ -41,5 +41,56 @@ impl Post {
             .with_context(|| format!("failed to delete post with uri {uri}"))?;
 
         Ok(())
+    }
+
+    pub async fn get_all<'e, E>(executor: E, limit: u8) -> Result<Vec<Post>>
+    where
+        E: Executor<'e, Database = Sqlite>,
+    {
+        let posts = sqlx::query!(
+            "select * from posts order by indexed_at desc, cid desc limit ?",
+            limit
+        )
+        .fetch_all(executor)
+        .await?
+        .into_iter()
+        .filter_map(|post| {
+            Some(Post {
+                uri: post.uri?,
+                cid: post.cid,
+                indexed_at: post.indexed_at.and_utc(),
+            })
+        })
+        .collect::<Vec<_>>();
+
+        Ok(posts)
+    }
+
+    pub async fn get_all_where_time_under<'e, E>(
+        executor: E,
+        limit: u8,
+        time: DateTime<Utc>,
+    ) -> Result<Vec<Post>>
+    where
+        E: Executor<'e, Database = Sqlite>,
+    {
+        let posts = sqlx::query!(
+            "select * from posts where indexed_at < ? order by indexed_at desc, cid desc limit ?",
+            time,
+            limit
+        )
+        .fetch_all(executor)
+        .await?
+        .into_iter()
+        .filter_map(|post| {
+            Some(Post {
+                uri: post.uri?,
+                cid: post.cid,
+                indexed_at: post.indexed_at.and_utc(),
+            })
+        })
+        .collect::<Vec<_>>();
+
+        Ok(posts)
     }
 }
