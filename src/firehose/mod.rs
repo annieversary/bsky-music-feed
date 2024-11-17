@@ -6,11 +6,11 @@ mod handler;
 mod stream;
 mod subscription;
 
-pub async fn listen<DATA: Send + Sync + 'static>(
-    handler: Handler<DATA>,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn listen<DATA: Send + Sync + 'static>(handler: Handler<DATA>) -> Result<()> {
     subscription::RepoSubscription::new("bsky.network")
         .await?
         .run(handler)
-        .await
+        .await?;
+
+    Ok(())
 }

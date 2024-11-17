@@ -18,15 +18,12 @@ pub struct RepoSubscription {
 }
 
 impl RepoSubscription {
-    pub async fn new(bgs: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new(bgs: &str) -> Result<Self> {
         let (stream, _) = connect_async(format!("wss://{bgs}/xrpc/{NSID}")).await?;
         Ok(RepoSubscription { stream })
     }
 
-    pub async fn run(
-        &mut self,
-        handler: impl CommitHandler + Send + Sync + 'static,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(&mut self, handler: impl CommitHandler + Send + Sync + 'static) -> Result<()> {
         let handler = Arc::new(handler);
 
         while let Some(result) = self.next().await {
