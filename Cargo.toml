@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.80"
 atrium-api = { version = "0.24.7" }
+axum = "0.7.9"
 chrono = "0.4.34"
 dotenv = "0.15.0"
 futures = "0.3.30"
@@ -13,6 +14,7 @@ ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
 regex = "1.11.1"
 rs-car = "0.4.1"
 serde_ipld_dagcbor = { version = "0.6.1", default-features = false, features = ["std"] }
+serde_json = "1.0.133"
 sqlx = { version = "0.8.2", features = ["chrono", "runtime-tokio", "sqlite"] }
 tokio = { version = "1.36.0", features = ["full"] }
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
