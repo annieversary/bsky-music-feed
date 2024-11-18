@@ -15,7 +15,7 @@ regex = "1.11.1"
 rs-car = "0.4.1"
 serde_ipld_dagcbor = { version = "0.6.1", default-features = false, features = ["std"] }
 serde_json = "1.0.133"
-sqlx = { version = "0.8.2", features = ["chrono", "runtime-tokio", "sqlite"] }
+sqlx = { version = "0.8.2", features = ["chrono", "runtime-tokio-rustls", "sqlite"] }
 tokio = { version = "1.36.0", features = ["full"] }
-tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
+tokio-tungstenite = { version = "0.21.0", features = ["rustls"] }
 trait-variant = "0.1.1"
