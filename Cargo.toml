@@ -17,5 +17,5 @@ serde_ipld_dagcbor = { version = "0.6.1", default-features = false, features = [
 serde_json = "1.0.133"
 sqlx = { version = "0.8.2", features = ["chrono", "runtime-tokio-rustls", "sqlite"] }
 tokio = { version = "1.36.0", features = ["full"] }
-tokio-tungstenite = { version = "0.21.0", features = ["rustls"] }
+tokio-tungstenite = { version = "0.21.0", features = ["rustls-tls-native-roots"] }
 trait-variant = "0.1.1"
